@@ -1,31 +1,36 @@
-# AI Event Form Generator (Everyday Use Track)
+# 🌟 AI Event Feedback Studio
 
-This project is an automated solution for the **Everyday Use Track** of the AI Automation Competition (CS Week). It takes an event description as input and automatically generates a customized, multi-question Google Form for feedback.
+> **AI Automation Competition — CS Week | Everyday Use Track**  
+> An automated intelligent system that takes an event description as input and automatically generates a customized, multi-question Google Form for collecting feedback based on the event's purpose, activities, and technical details.
 
-## ✨ Features
-1. **Zero-Setup for Judges:** The frontend interface requires **NO API key input**. The judges only need to paste or type an event description and click **Generate Magic Form**!
-2. **Powered by OpenRouter / Multi-Model AI:** Compatible with OpenRouter (`google/gemini-2.0-flash-001`, `meta-llama/llama-3.3-70b-instruct`, etc.), Groq, xAI, OpenAI, or Gemini.
-3. **Intelligent Question Generation:** Automatically designs:
-   - Multiple Choice questions
-   - Checkboxes
-   - 1-5 Numerical rating scale
-   - Open-ended paragraph feedback
-4. **Automated Google Form Creation:** Uses Google Apps Script's `FormApp` API to instantly create, format, and publish the form in Google Drive.
-5. **Instant Links:** Generates both the **Live Form link** (for respondents) and **Edit link** (for form owners).
+[![Live Hosted Demo](https://img.shields.io/badge/Live%20Demo-Try%20It%20Now-6366f1?style=for-the-badge&logo=google&logoColor=white)](https://script.google.com/macros/s/AKfycbwvhXe7XwzcTGtho_uCMdGAbhzY5HEmbuAtDEaGXB5T0Et_B5SgSBhbKbQVssQ74BbRvQ/exec)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Pvinaykumar24/Ai-automation)
 
-## 🚀 Setup & Deployment
+---
 
-1. Open [script.google.com](https://script.google.com) and create a **New Project**.
-2. Copy and paste [`Code.gs`](./Code.gs) into the `Code.gs` tab.
-3. **At line 5 of `Code.gs`**, paste your OpenRouter key inside `const API_KEY = "..."`:
-   ```javascript
-   const API_KEY = "sk-or-v1-...";
-   ```
-4. Click the `+` icon next to Files, select **HTML**, and name it **`Index`**.
-5. Copy and paste [`Index.html`](./Index.html) into the `Index` tab.
-6. Click **Save** (💾).
-7. Click **Deploy** -> **New deployment**:
-   - Type: **Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-8. Click **Deploy** and copy the **Web app URL** to submit!
+## 🔗 Deliverables Summary
+
+* **🚀 Live Hosted Application:** [https://script.google.com/.../exec](https://script.google.com/macros/s/AKfycbwvhXe7XwzcTGtho_uCMdGAbhzY5HEmbuAtDEaGXB5T0Et_B5SgSBhbKbQVssQ74BbRvQ/exec)
+* **📂 GitHub Repository:** [https://github.com/Pvinaykumar24/Ai-automation](https://github.com/Pvinaykumar24/Ai-automation)
+* **📝 Submission Link:** [https://forms.gle/cp7LY8g6kXiUP3PKA](https://forms.gle/cp7LY8g6kXiUP3PKA)
+
+---
+
+## 💡 What It Does & How It Works
+
+1. **Intelligent Event Parsing:** Extracts event purpose, audience, activities, and technical topics using OpenRouter & Gemini AI.
+2. **Interactive Question Studio:** Generates an optimal mix of 1–5 numerical rating scales, multiple-choice options, checkboxes, and open-ended feedback fields. Organizers can edit, add, or delete questions on the fly.
+3. **Automated Google Form Creation:** Uses Google Apps Script's `FormApp` API to programmatically build and publish authentic Google Forms directly to Google Drive.
+4. **Rich SaaS Aesthetics:** Features an interactive Three.js 3D AI Orb, GSAP animations, Lucide icons, Outfit typography, and dark-mode glassmorphism.
+5. **Instant Live Links:** Directly returns both the Respondent Live Link and Drive Edit Link.
+
+---
+
+## 🛠️ Stack & Technologies
+* **Frontend:** Vanilla HTML5, Vanilla CSS3 (Glassmorphism), Vanilla JavaScript ES6+
+* **3D Visuals:** Three.js
+* **Motion & Animation:** GSAP 3.12
+* **Icons & Fonts:** Lucide Icons, Google Fonts (Outfit)
+* **Backend:** Google Apps Script (`Code.gs`) with `FormApp` API
+* **AI Model Engine:** OpenRouter (`google/gemini-2.0-flash-001`), Groq, xAI, OpenAI, Gemini
+* **Hosting:** Google Apps Script Web App (High availability, zero server maintenance)

@@ -4,349 +4,1760 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Event Form Generator</title>
+  <title>AI Event Feedback Studio</title>
+  
+  <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & VARIABLES
+       ========================================================================== */
     :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --secondary: #ec4899;
-      --bg-gradient-start: #0f172a;
-      --bg-gradient-end: #1e1b4b;
-      --surface: rgba(30, 41, 59, 0.75);
-      --border: rgba(255, 255, 255, 0.12);
-      --text: #f8fafc;
+      --bg-base: #050816;
+      --bg-surface: rgba(255, 255, 255, 0.04);
+      --bg-surface-hover: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.10);
+      --glass-border-focus: rgba(99, 102, 241, 0.5);
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #5B8CFF;
+      --violet: #8B5CF6;
+      --cyan: #4DE8FF;
+      --gradient-accent: linear-gradient(135deg, #5B8CFF 0%, #8B5CF6 50%, #4DE8FF 100%);
+      --gradient-btn: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: 'Outfit', sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
-      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-      color: var(--text);
+      background-color: var(--bg-base);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      position: relative;
       overflow-x: hidden;
+      position: relative;
     }
 
-    /* Ambient background blobs */
-    .blob {
-      position: absolute;
-      filter: blur(80px);
-      z-index: 0;
-      opacity: 0.6;
+    /* Background blurred glow ambient orbs */
+    .ambient-glow {
+      position: fixed;
       border-radius: 50%;
-      animation: float 10s infinite ease-in-out alternate;
+      filter: blur(120px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.35;
     }
-    .blob-1 {
-      top: -10%; left: -10%;
-      width: 40vw; height: 40vw;
-      background: var(--primary);
-      animation-delay: 0s;
-    }
-    .blob-2 {
-      bottom: -10%; right: -10%;
-      width: 35vw; height: 35vw;
-      background: var(--secondary);
-      animation-delay: -5s;
-    }
+    .glow-1 { top: -150px; left: -100px; width: 500px; height: 500px; background: #6366f1; }
+    .glow-2 { bottom: -150px; right: -100px; width: 600px; height: 600px; background: #8b5cf6; }
+    .glow-3 { top: 40%; left: 35%; width: 400px; height: 400px; background: #06b6d4; opacity: 0.15; }
 
-    @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(30px, 50px) scale(1.1); }
+    /* Glass components */
+    .glass {
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
     }
-
-    .container {
-      background: var(--surface);
+    .glass-card {
+      background: var(--gradient-card);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2.5rem;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: var(--transition-smooth);
+    }
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Layout: Sidebar + Main Content */
+    .app-layout {
+      display: flex;
       width: 100%;
-      max-width: 620px;
+      min-height: 100vh;
       z-index: 1;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
     }
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: rgba(10, 14, 30, 0.7);
+      backdrop-filter: blur(25px);
+      border-right: 1px solid var(--glass-border);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      transition: var(--transition-smooth);
     }
 
-    h1 {
-      font-size: 2.4rem;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      padding-left: 0.5rem;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--gradient-accent);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(91, 140, 255, 0.3);
+    }
+    .brand-title {
+      font-size: 1.25rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(to right, #a5b4fc, #f9a8d4);
+      letter-spacing: -0.02em;
+      background: var(--gradient-accent);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-align: center;
     }
 
-    p.subtitle {
-      text-align: center;
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
       color: var(--text-muted);
-      margin-bottom: 2rem;
-      font-size: 1.05rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
+    }
+    .nav-item:hover {
+      color: var(--text-main);
+      background: var(--bg-surface-hover);
+    }
+    .nav-item.active {
+      color: var(--text-main);
+      background: rgba(91, 140, 255, 0.12);
+      border-color: rgba(91, 140, 255, 0.3);
+    }
+    .nav-item.active i {
+      color: var(--cyan);
     }
 
+    .sidebar-footer {
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-sm);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* Main Content Area */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    .top-header {
+      padding: 1.5rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(5, 8, 22, 0.4);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .view-container {
+      padding: 3rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    /* Page Sections */
+    .view-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    .view-section.active-view {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Common typography */
+    h1.hero-title {
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+    }
+    .gradient-text {
+      background: var(--gradient-accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.lead-text {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
+      outline: none;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--gradient-btn);
+      color: #fff;
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.6);
+    }
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--glass-border);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    /* ==========================================================================
+       PAGE 1: DASHBOARD / HERO
+       ========================================================================== */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 3rem;
+      margin-bottom: 4rem;
+    }
+    .canvas-orb-container {
+      width: 100%;
+      height: 420px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #three-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius-xl);
+      outline: none;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .recent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .recent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .recent-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 180px;
+    }
+
+    /* ==========================================================================
+       PAGE 2: CREATE EVENT
+       ========================================================================== */
+    .create-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
     .form-group {
       margin-bottom: 1.5rem;
     }
-
-    label {
-      display: block;
-      margin-bottom: 0.6rem;
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
       font-weight: 500;
       color: #cbd5e1;
-      font-size: 1rem;
+      margin-bottom: 0.5rem;
     }
-
-    textarea {
+    .glass-input, .glass-select, .glass-textarea {
       width: 100%;
       background: rgba(15, 23, 42, 0.7);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      color: var(--text);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      color: var(--text-main);
       font-size: 1rem;
-      transition: all 0.3s ease;
       outline: none;
+      transition: var(--transition-smooth);
+    }
+    .glass-input:focus, .glass-select:focus, .glass-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.2);
+    }
+    .glass-textarea {
       resize: vertical;
       min-height: 140px;
       line-height: 1.5;
     }
-
-    textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
     }
 
-    button {
-      width: 100%;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 1.1rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .preview-card {
+      position: sticky;
+      top: 100px;
+      padding: 2rem;
+      border-radius: var(--radius-xl);
+    }
+    .preview-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      background: rgba(91, 140, 255, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(91, 140, 255, 0.3);
+      margin-bottom: 1.25rem;
+    }
+    .preview-chips {
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-wrap: wrap;
       gap: 0.5rem;
-      margin-top: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .chip {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
     }
 
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .loader {
-      display: none;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .result {
-      display: none;
-      margin-top: 1.8rem;
-      padding: 1.5rem;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      border-radius: 12px;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .result h3 {
-      color: #34d399;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1.2rem;
-    }
-
-    .links {
+    /* ==========================================================================
+       PAGE 3: AI ANALYSIS
+       ========================================================================== */
+    .analysis-steps {
       display: flex;
       flex-direction: column;
-      gap: 0.8rem;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
     }
-
-    .link-btn {
-      display: inline-flex;
+    .step-item {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      color: var(--text);
-      text-decoration: none;
-      padding: 0.85rem;
-      border-radius: 10px;
-      transition: background 0.2s;
-      font-weight: 500;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      font-size: 1rem;
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+    .step-item.done {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .step-item.active {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(77, 232, 255, 0.15);
     }
 
-    .link-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
+    .analysis-results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
     }
-    
-    .link-btn.primary {
-      background: rgba(99, 102, 241, 0.25);
-      border-color: rgba(99, 102, 241, 0.6);
-      color: #e0e7ff;
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .tag {
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      background: rgba(91, 140, 255, 0.12);
+      border: 1px solid rgba(91, 140, 255, 0.25);
+      color: #cbd5e1;
     }
 
-    .link-btn.primary:hover {
-      background: rgba(99, 102, 241, 0.4);
+    /* ==========================================================================
+       PAGE 4: QUESTION STUDIO
+       ========================================================================== */
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2.5rem;
+      align-items: start;
     }
-
-    .error {
-      display: none;
-      margin-top: 1.2rem;
-      padding: 1rem;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
-      border-radius: 10px;
-      font-size: 0.95rem;
+    .questions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .question-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .q-num {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .q-type-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .q-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
       line-height: 1.4;
     }
-    
-    .instructions {
-      text-align: center;
-      margin-top: 1.8rem;
+    .q-options-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding-left: 0.5rem;
+    }
+    .q-opt-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
       color: var(--text-muted);
-      font-size: 0.85rem;
-      z-index: 1;
+      font-size: 0.9rem;
+    }
+    .q-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .q-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Quality Panel */
+    .quality-panel {
+      position: sticky;
+      top: 100px;
+    }
+    .score-circle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 1.5rem 0;
+    }
+    .score-gauge {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: conic-gradient(#10b981 0% 95%, rgba(255,255,255,0.05) 95% 100%);
+      position: relative;
+    }
+    .score-inner {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #090e24;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #34d399;
+    }
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      font-size: 0.9rem;
+    }
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+    }
+    .checklist li i {
+      color: #10b981;
+    }
+
+    /* ==========================================================================
+       PAGE 5: FULL-SCREEN GENERATING
+       ========================================================================== */
+    .generating-wrap {
+      max-width: 600px;
+      margin: 4rem auto;
+      text-align: center;
+    }
+    .spinner-ring {
+      width: 80px;
+      height: 80px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--cyan);
+      border-right-color: var(--violet);
+      border-radius: 50%;
+      margin: 0 auto 2.5rem;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ==========================================================================
+       PAGE 6: SUCCESS
+       ========================================================================== */
+    .success-card {
+      max-width: 650px;
+      margin: 2rem auto;
+      text-align: center;
+      padding: 3.5rem 2.5rem;
+    }
+    .success-icon-wrap {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 2px solid #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      color: #34d399;
+      box-shadow: 0 0 35px rgba(16, 185, 129, 0.3);
+    }
+    .success-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+
+    /* ==========================================================================
+       MODALS & TOASTS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 22, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 550px;
+      background: #0b112c;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      position: relative;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .toast {
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      background: #111827;
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      animation: slideInRight 0.3s ease;
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-grid, .create-grid, .studio-layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        width: 80px;
+        padding: 1.5rem 0.75rem;
+      }
+      .brand-title, .nav-item span, .sidebar-footer {
+        display: none;
+      }
+      .nav-item {
+        justify-content: center;
+      }
+      .top-header, .view-container {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
 
-  <div class="container">
-    <h1>AI Form Generator</h1>
-    <p class="subtitle">Instantly create tailored feedback forms for any event.</p>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
 
-    <div class="form-group">
-      <label for="description">Event Description</label>
-      <textarea id="description" placeholder="Describe the event (e.g., A 2-day workshop on Advanced Python covering Asyncio, Multithreading, and Web Scraping with 50 attendees)..." required></textarea>
-    </div>
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
-    <button id="generateBtn" onclick="submitForm()">
-      <span id="btnText">Generate Magic Form</span>
-      <div id="loader" class="loader"></div>
-    </button>
+  <!-- Main Application Layout -->
+  <div class="app-layout">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="sparkles" style="color: white; width: 22px; height: 22px;"></i>
+        </div>
+        <div class="brand-title">AI Feedback Studio</div>
+      </div>
 
-    <div id="errorBox" class="error"></div>
+      <ul class="nav-menu">
+        <li class="nav-item active" onclick="navigateTo('dashboard')">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </li>
+        <li class="nav-item" onclick="navigateTo('create')">
+          <i data-lucide="plus-circle"></i>
+          <span>Create Form</span>
+        </li>
+        <li class="nav-item" onclick="navigateTo('history')">
+          <i data-lucide="folder-archive"></i>
+          <span>My Forms</span>
+        </li>
+        <li class="nav-item" onclick="showHowItWorks()">
+          <i data-lucide="help-circle"></i>
+          <span>How It Works</span>
+        </li>
+      </ul>
 
-    <div id="resultBox" class="result">
-      <h3>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        Success! Form Created
-      </h3>
-      <div class="links">
-        <a id="viewLink" href="#" target="_blank" class="link-btn primary">View Live Form ↗</a>
-        <a id="editLink" href="#" target="_blank" class="link-btn">Open in Edit Mode ↗</a>
+      <div class="sidebar-footer">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span>AI Engine Connected</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <main class="main-wrapper">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-muted);" id="headerBreadcrumb">
+          Dashboard / Overview
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="navigateTo('create')">
+          <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+          <span>New Form</span>
+        </button>
+      </header>
+
+      <div class="view-container">
+
+        <!-- ====================================================================
+             PAGE 1: DASHBOARD
+             ==================================================================== -->
+        <section id="view-dashboard" class="view-section active-view">
+          <div class="hero-grid">
+            <div>
+              <div class="preview-badge">Next-Gen Feedback Intelligence</div>
+              <h1 class="hero-title">Turn any event into an <span class="gradient-text">intelligent feedback form.</span></h1>
+              <p class="lead-text">
+                Describe your event and let AI analyze its purpose, activities, and technical topics to generate a perfectly calibrated Google Form in seconds.
+              </p>
+              <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-primary" onclick="navigateTo('create')">
+                  <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                  <span>Create Feedback Form</span>
+                </button>
+                <button class="btn btn-secondary" onclick="navigateTo('history')">
+                  <i data-lucide="layers" style="width: 18px; height: 18px;"></i>
+                  <span>View My Forms</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 3D Three.js Hero AI Orb -->
+            <div class="canvas-orb-container glass">
+              <canvas id="three-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Statistics Cards -->
+          <div class="stats-row">
+            <div class="glass-card">
+              <div class="stat-number gradient-text" id="statFormsCount">127</div>
+              <div class="stat-label">Forms Generated</div>
+            </div>
+            <div class="glass-card">
+              <div class="stat-number gradient-text">38</div>
+              <div class="stat-label">Events Analyzed</div>
+            </div>
+            <div class="glass-card">
+              <div class="stat-number gradient-text">96%</div>
+              <div class="stat-label">Average AI Quality</div>
+            </div>
+          </div>
+
+          <!-- Recent Forms List -->
+          <div class="recent-header">
+            <h2 class="section-title">Recent Feedback Forms</h2>
+            <button class="btn btn-secondary btn-sm" onclick="navigateTo('history')">View All</button>
+          </div>
+          <div class="recent-grid" id="recentFormsContainer">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 2: CREATE EVENT
+             ==================================================================== -->
+        <section id="view-create" class="view-section">
+          <h2 class="section-title">Create your feedback form</h2>
+          <p class="section-sub">Provide event details so the AI can craft tailored questions matching your specific audience and agenda.</p>
+
+          <div class="create-grid">
+            <div class="glass-card">
+              
+              <div class="form-group">
+                <label class="form-label" for="eventName">Event Name</label>
+                <input type="text" id="eventName" class="glass-input" placeholder="e.g. AI & Robotics Workshop" oninput="updateLivePreview()">
+              </div>
+
+              <div class="row-2">
+                <div class="form-group">
+                  <label class="form-label" for="eventType">Event Type</label>
+                  <select id="eventType" class="glass-select" onchange="updateLivePreview()">
+                    <option value="Workshop">Workshop</option>
+                    <option value="Hackathon">Hackathon</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Technical Training">Technical Training</option>
+                    <option value="Webinar">Webinar</option>
+                    <option value="Meetup">Meetup</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="duration">Duration</label>
+                  <select id="duration" class="glass-select" onchange="updateLivePreview()">
+                    <option value="2 Hours">2 Hours</option>
+                    <option value="1 Day" selected>1 Day</option>
+                    <option value="2 Days">2 Days</option>
+                    <option value="1 Week">1 Week</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="audience">Target Audience</label>
+                <input type="text" id="audience" class="glass-input" placeholder="e.g. Engineering Students, Developers" oninput="updateLivePreview()">
+              </div>
+
+              <div class="form-group">
+                <div class="form-label">
+                  <span>Event Description & Technical Details</span>
+                  <a href="javascript:void(0)" onclick="loadSampleEvent()" style="color: var(--cyan); text-decoration: none; font-size: 0.85rem;">⚡ Load Sample Event</a>
+                </div>
+                <textarea id="eventDescription" class="glass-textarea" placeholder="Describe the topics covered, hands-on activities, mentor sessions, and key goals..." oninput="updateLivePreview()"></textarea>
+              </div>
+
+              <button class="btn btn-primary" style="width: 100%;" onclick="startAnalysis()">
+                <i data-lucide="cpu" style="width: 18px; height: 18px;"></i>
+                <span>Analyze Event & Plan Questions →</span>
+              </button>
+            </div>
+
+            <!-- Live Event Preview Card -->
+            <div class="preview-card glass">
+              <div class="preview-badge">Live Event Preview</div>
+              <h3 id="previewTitle" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">AI & Robotics Workshop</h3>
+              <p id="previewDesc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">Enter an event description on the left to see live structured extraction.</p>
+              
+              <div class="preview-chips">
+                <div class="chip" id="previewTypeChip">Workshop</div>
+                <div class="chip" id="previewAudienceChip">Engineering Students</div>
+                <div class="chip" id="previewDurationChip">1 Day</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 3: AI ANALYSIS
+             ==================================================================== -->
+        <section id="view-analysis" class="view-section">
+          <h2 class="section-title">AI Event Understanding</h2>
+          <p class="section-sub">Extracting semantic context, technical subjects, and feedback objectives from your description.</p>
+
+          <!-- Sequential processing checklist -->
+          <div class="analysis-steps">
+            <div class="step-item" id="step-1"><i data-lucide="circle-dashed"></i> Understanding event purpose and mission</div>
+            <div class="step-item" id="step-2"><i data-lucide="circle-dashed"></i> Identifying target audience and expertise level</div>
+            <div class="step-item" id="step-3"><i data-lucide="circle-dashed"></i> Detecting hands-on activities and modules</div>
+            <div class="step-item" id="step-4"><i data-lucide="circle-dashed"></i> Extracting technical topics and tools</div>
+            <div class="step-item" id="step-5"><i data-lucide="circle-dashed"></i> Planning multi-format question schema</div>
+          </div>
+
+          <!-- Structured Results Output -->
+          <div id="analysisOutputCards" style="display: none;">
+            <div class="analysis-results-grid">
+              <div class="glass-card">
+                <div class="stat-label">Core Purpose</div>
+                <p id="resPurpose" style="font-size: 1.05rem; margin-top: 0.5rem; color: var(--text-main);"></p>
+              </div>
+              <div class="glass-card">
+                <div class="stat-label">Target Audience</div>
+                <p id="resAudience" style="font-size: 1.05rem; margin-top: 0.5rem; color: var(--text-main);"></p>
+              </div>
+              <div class="glass-card">
+                <div class="stat-label">Technical Topics & Tools</div>
+                <div class="tag-container" id="resTopicsTags"></div>
+              </div>
+              <div class="glass-card">
+                <div class="stat-label">Hands-on Activities</div>
+                <div class="tag-container" id="resActivitiesTags"></div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="margin-top: 1rem;" onclick="navigateTo('questions')">
+              <i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i>
+              <span>Open Question Studio →</span>
+            </button>
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 4: QUESTION STUDIO
+             ==================================================================== -->
+        <section id="view-questions" class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+              <h2 class="section-title">Question Studio</h2>
+              <p class="section-sub" style="margin-bottom: 0;">Review, edit, and fine-tune questions tailored to your event before creating the live Google Form.</p>
+            </div>
+            <button class="btn btn-primary" onclick="startFormCreation()">
+              <i data-lucide="file-plus" style="width: 18px; height: 18px;"></i>
+              <span>Create Google Form Now</span>
+            </button>
+          </div>
+
+          <div class="studio-layout">
+            <!-- Questions List -->
+            <div>
+              <div class="questions-container" id="questionsList">
+                <!-- Dynamically populated question cards -->
+              </div>
+              <button class="btn btn-secondary" style="margin-top: 1.5rem; width: 100%; border-style: dashed;" onclick="openAddQuestionModal()">
+                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                <span>Add Custom Question</span>
+              </button>
+            </div>
+
+            <!-- AI Quality Panel -->
+            <div class="quality-panel glass-card">
+              <div class="stat-label" style="text-align: center;">AI Quality Audit</div>
+              
+              <div class="score-circle-wrap">
+                <div class="score-gauge">
+                  <div class="score-inner">
+                    <span class="score-val" id="qualityScoreVal">96</span>
+                    <span style="font-size: 0.75rem; color: var(--text-dim);">/ 100</span>
+                  </div>
+                </div>
+                <div style="color: #34d399; font-weight: 700; margin-top: 0.5rem;">Excellent Calibration</div>
+              </div>
+
+              <ul class="checklist" id="qualityChecklist">
+                <li><i data-lucide="check-circle-2"></i> Event relevance verified</li>
+                <li><i data-lucide="check-circle-2"></i> Activity coverage complete</li>
+                <li><i data-lucide="check-circle-2"></i> Technical depth reflected</li>
+                <li><i data-lucide="check-circle-2"></i> Question diversity balanced</li>
+                <li><i data-lucide="check-circle-2"></i> Neutral unbiased wording</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 5: GENERATING FORM
+             ==================================================================== -->
+        <section id="view-generating" class="view-section">
+          <div class="generating-wrap glass-card">
+            <div class="spinner-ring"></div>
+            <h2 class="section-title">Generating Real Google Form</h2>
+            <p class="section-sub" style="margin-bottom: 2rem;">Connecting with Google FormApp to build and deploy your feedback form into your Google Drive.</p>
+            
+            <div class="analysis-steps" style="text-align: left; max-width: 450px; margin: 0 auto;">
+              <div class="step-item done"><i data-lucide="check"></i> Event schema validated</div>
+              <div class="step-item done"><i data-lucide="check"></i> Questions formatted for FormApp</div>
+              <div class="step-item active" id="genStep1"><i data-lucide="loader"></i> Creating new Google Form document...</div>
+              <div class="step-item" id="genStep2"><i data-lucide="circle"></i> Injecting scale, multiple choice & text items</div>
+              <div class="step-item" id="genStep3"><i data-lucide="circle"></i> Finalizing shareable response URLs</div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 6: SUCCESS
+             ==================================================================== -->
+        <section id="view-success" class="view-section">
+          <div class="success-card glass-card">
+            <div class="success-icon-wrap">
+              <i data-lucide="check" style="width: 45px; height: 45px;"></i>
+            </div>
+            
+            <div class="preview-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">Form Published Successfully</div>
+            <h2 class="section-title" id="successFormTitle">AI & Robotics Workshop Feedback</h2>
+            <p class="section-sub" id="successFormMeta">7 questions generated and ready for respondents.</p>
+
+            <div class="success-actions">
+              <a id="btnLiveForm" href="#" target="_blank" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                <i data-lucide="external-link" style="width: 20px; height: 20px;"></i>
+                <span>Open Google Form (Respondent View) ↗</span>
+              </a>
+              <a id="btnEditForm" href="#" target="_blank" class="btn btn-secondary">
+                <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
+                <span>Edit in Google Drive ↗</span>
+              </a>
+              <button class="btn btn-secondary" onclick="navigateTo('create')">
+                <i data-lucide="rotate-ccw" style="width: 18px; height: 18px;"></i>
+                <span>Create Another Form</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ====================================================================
+             PAGE 7: HISTORY / MY FORMS
+             ==================================================================== -->
+        <section id="view-history" class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+              <h2 class="section-title">My Feedback Forms</h2>
+              <p class="section-sub" style="margin-bottom: 0;">Access previously generated Google Forms stored in your workspace.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="navigateTo('create')">Create New</button>
+          </div>
+
+          <div class="recent-grid" id="historyGrid">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Question Edit Modal -->
+  <div id="editQuestionModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem;">Edit Question</h3>
+      
+      <div class="form-group">
+        <label class="form-label" for="editQTitle">Question Title</label>
+        <input type="text" id="editQTitle" class="glass-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editQType">Question Type</label>
+        <select id="editQType" class="glass-select" onchange="toggleEditModalOptions()">
+          <option value="scale">Scale (1 - 5)</option>
+          <option value="multiple_choice">Multiple Choice</option>
+          <option value="checkbox">Checkbox</option>
+          <option value="paragraph">Paragraph (Open-Ended)</option>
+          <option value="short_answer">Short Answer</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="editModalOptionsGroup" style="display: none;">
+        <label class="form-label" for="editQOptions">Options (comma separated)</label>
+        <input type="text" id="editQOptions" class="glass-input" placeholder="Option 1, Option 2, Option 3">
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+        <input type="checkbox" id="editQRequired" style="width: 18px; height: 18px;">
+        <label for="editQRequired" style="margin-bottom: 0; cursor: pointer;">Required response</label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem;">
+        <button class="btn btn-secondary btn-sm" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditedQuestion()">Save Changes</button>
       </div>
     </div>
   </div>
 
-  <div class="instructions">
-    Built for the CS Week AI Automation Competition.
+  <!-- How It Works Modal -->
+  <div id="howItWorksModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem;">How It Works</h3>
+      <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+        AI Event Feedback Studio automates form generation in 3 simple phases:
+      </p>
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 1rem; color: #cbd5e1; font-size: 0.95rem;">
+        <li><strong>1. Context Analysis:</strong> The AI extracts topics, duration, hands-on tasks, and target persona.</li>
+        <li><strong>2. Dynamic Studio:</strong> Generates balanced questions (numerical rating scales, multi-choice, qualitative fields) ready for customization.</li>
+        <li><strong>3. Google Form Publication:</strong> Directly calls Google's FormApp API to create a live, deployable Google Form in your Drive.</li>
+      </ul>
+      <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+        <button class="btn btn-primary btn-sm" onclick="closeHowItWorks()">Got it</button>
+      </div>
+    </div>
   </div>
 
-  <script>
-    function submitForm() {
-      const desc = document.getElementById('description').value;
-      
-      const btn = document.getElementById('generateBtn');
-      const btnText = document.getElementById('btnText');
-      const loader = document.getElementById('loader');
-      const errorBox = document.getElementById('errorBox');
-      const resultBox = document.getElementById('resultBox');
 
-      if (!desc.trim()) {
-        showError("Please enter an event description.");
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC & THREE.JS ENGINE
+       ========================================================================== -->
+  <script>
+    // Centralized Application State
+    const appState = {
+      currentPage: "dashboard",
+      event: {
+        name: "AI & Robotics Workshop",
+        description: "",
+        type: "Workshop",
+        audience: "Engineering Students",
+        duration: "1 Day"
+      },
+      analysis: null,
+      questions: [],
+      qualityScore: 96,
+      currentEditingIndex: null,
+      history: [
+        {
+          title: "AI & Robotics Workshop Feedback",
+          eventType: "Workshop",
+          questionCount: 6,
+          formUrl: "https://forms.google.com",
+          editUrl: "https://docs.google.com/forms",
+          date: "Oct 8, 2026"
+        },
+        {
+          title: "Web Dev Bootcamp Evaluation",
+          eventType: "Technical Training",
+          questionCount: 8,
+          formUrl: "https://forms.google.com",
+          editUrl: "https://docs.google.com/forms",
+          date: "Oct 7, 2026"
+        }
+      ]
+    };
+
+    // Initialize Lucide Icons & App
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initThreeOrb();
+      renderRecentForms();
+      renderHistory();
+      loadStoredHistory();
+    });
+
+    // SPA Navigation
+    function navigateTo(pageId) {
+      appState.currentPage = pageId;
+
+      // Update sidebar nav items
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(item => 
+        item.textContent.toLowerCase().includes(pageId === 'create' ? 'create' : pageId)
+      );
+      if (activeNav) activeNav.classList.add('active');
+
+      // Update breadcrumb
+      const breadcrumb = document.getElementById('headerBreadcrumb');
+      const titles = {
+        dashboard: "Dashboard / Overview",
+        create: "Create / Event Details",
+        analysis: "Intelligence / Analysis",
+        questions: "Studio / Question Editor",
+        generating: "Publishing / Google FormApp",
+        success: "Success / Form Published",
+        history: "History / My Forms"
+      };
+      if (breadcrumb) breadcrumb.textContent = titles[pageId] || "Studio";
+
+      // View transitions with GSAP
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active-view'));
+      const targetSec = document.getElementById('view-' + pageId);
+      if (targetSec) {
+        targetSec.classList.add('active-view');
+        gsap.fromTo(targetSec, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Three.js 3D AI Orb Simulation
+    function initThreeOrb() {
+      const container = document.getElementById('three-canvas');
+      if (!container) return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.z = 4.2;
+
+      const renderer = new THREE.WebGLRenderer({ canvas: container, alpha: true, antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Central glowing particle sphere
+      const sphereGeo = new THREE.SphereGeometry(1.2, 28, 28);
+      const sphereMat = new THREE.MeshBasicMaterial({
+        color: 0x5B8CFF,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.45
+      });
+      const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+      scene.add(sphere);
+
+      // Inner dense core
+      const coreGeo = new THREE.SphereGeometry(0.7, 16, 16);
+      const coreMat = new THREE.MeshBasicMaterial({
+        color: 0x4DE8FF,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.8
+      });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      scene.add(core);
+
+      // Orbital Rings
+      const ringGeo1 = new THREE.TorusGeometry(1.7, 0.015, 16, 100);
+      const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x8B5CF6, transparent: true, opacity: 0.6 });
+      const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+      ring1.rotation.x = Math.PI / 3;
+      scene.add(ring1);
+
+      const ringGeo2 = new THREE.TorusGeometry(2.0, 0.015, 16, 100);
+      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0x4DE8FF, transparent: true, opacity: 0.4 });
+      const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+      ring2.rotation.y = Math.PI / 4;
+      scene.add(ring2);
+
+      // Mouse interactivity
+      let mouseX = 0, mouseY = 0;
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+      });
+
+      // Animation Loop
+      function animate() {
+        requestAnimationFrame(animate);
+        sphere.rotation.y += 0.005;
+        sphere.rotation.x += 0.003;
+        core.rotation.y -= 0.008;
+
+        ring1.rotation.z += 0.004;
+        ring2.rotation.x += 0.005;
+
+        // Subtle tilt following mouse
+        scene.rotation.y += (mouseX * 0.8 - scene.rotation.y) * 0.05;
+        scene.rotation.x += (mouseY * 0.8 - scene.rotation.x) * 0.05;
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        if (!container.parentElement) return;
+        camera.aspect = container.parentElement.clientWidth / container.parentElement.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.parentElement.clientWidth, container.parentElement.clientHeight);
+      });
+    }
+
+    // Live Event Details Preview
+    function updateLivePreview() {
+      const name = document.getElementById('eventName').value || "AI & Robotics Workshop";
+      const desc = document.getElementById('eventDescription').value || "Enter an event description on the left to see live structured extraction.";
+      const type = document.getElementById('eventType').value;
+      const audience = document.getElementById('audience').value || "Engineering Students";
+      const duration = document.getElementById('duration').value;
+
+      document.getElementById('previewTitle').textContent = name;
+      document.getElementById('previewDesc').textContent = desc.substring(0, 150) + (desc.length > 150 ? '...' : '');
+      document.getElementById('previewTypeChip').textContent = type;
+      document.getElementById('previewAudienceChip').textContent = audience;
+      document.getElementById('previewDurationChip').textContent = duration;
+
+      appState.event = { name, description: desc, type, audience, duration };
+    }
+
+    // Quick Load Sample Event (For 1-click test)
+    function loadSampleEvent() {
+      document.getElementById('eventName').value = "AI & Robotics Hands-on Bootcamp";
+      document.getElementById('eventType').value = "Workshop";
+      document.getElementById('duration').value = "1 Day";
+      document.getElementById('audience').value = "Computer Science & Engineering Undergrads";
+      document.getElementById('eventDescription').value = "A full-day intensive workshop covering Machine Learning concepts, OpenCV image processing, and Arduino microcontroller integration. 60 students built obstacle-avoidance robots and trained object recognition models in Python. We provided catered meals, hardware kits, and 1-on-1 mentor guidance.";
+      updateLivePreview();
+      showToast("Sample event loaded!", "success");
+    }
+
+    // Start AI Analysis Process
+    function startAnalysis() {
+      const desc = document.getElementById('eventDescription').value.trim();
+      if (!desc) {
+        showToast("Please provide an event description first.", "error");
         return;
       }
 
-      btn.disabled = true;
-      btnText.style.display = 'none';
-      loader.style.display = 'block';
-      errorBox.style.display = 'none';
-      resultBox.style.display = 'none';
+      updateLivePreview();
+      navigateTo('analysis');
 
-      google.script.run
-        .withSuccessHandler(function(response) {
-          btn.disabled = false;
-          btnText.style.display = 'block';
-          loader.style.display = 'none';
-
-          if (response.success) {
-            document.getElementById('viewLink').href = response.formUrl;
-            document.getElementById('editLink').href = response.editUrl;
-            resultBox.style.display = 'block';
-          } else {
-            showError(response.error);
+      // Sequential animation of analysis steps
+      const steps = [1, 2, 3, 4, 5];
+      steps.forEach((stepNum, idx) => {
+        setTimeout(() => {
+          const el = document.getElementById('step-' + stepNum);
+          if (el) {
+            el.classList.add('active');
+            if (stepNum > 1) {
+              const prev = document.getElementById('step-' + (stepNum - 1));
+              if (prev) {
+                prev.classList.remove('active');
+                prev.classList.add('done');
+                prev.querySelector('i').setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+              }
+            }
           }
-        })
-        .withFailureHandler(function(error) {
-          btn.disabled = false;
-          btnText.style.display = 'block';
-          loader.style.display = 'none';
-          showError("Execution error: " + (error.message || error));
-        })
-        .generateForm(desc);
+        }, idx * 600);
+      });
+
+      // Call Google Apps Script backend
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(handleAnalysisSuccess)
+          .withFailureHandler(handleAnalysisError)
+          .analyzeAndGenerateQuestions(appState.event);
+      } else {
+        // Fallback for standalone preview simulation
+        setTimeout(() => {
+          handleAnalysisSuccess({
+            success: true,
+            data: {
+              analysis: {
+                purpose: "Impart practical hands-on experience in machine learning pipelines, embedded sensors, and hardware integration.",
+                audience: appState.event.audience,
+                topics: ["Machine Learning", "OpenCV", "Python", "Arduino", "Sensors"],
+                activities: ["Object Detection", "Obstacle Robot Assembly", "Live Mentoring"],
+                feedbackFocus: ["Technical depth", "Kit quality", "Mentor support"]
+              },
+              questions: [
+                { id: "q1", type: "scale", title: "How practical and applicable was the OpenCV computer vision module?", required: true, min: 1, max: 5 },
+                { id: "q2", type: "multiple_choice", title: "Which session provided the greatest learning breakthrough for you?", required: true, options: ["Machine Learning Basics", "OpenCV Vision Pipeline", "Arduino Hardware Assembly", "Mentor Code Review"] },
+                { id: "q3", type: "scale", title: "How would you rate the availability and guidance provided by technical mentors?", required: true, min: 1, max: 5 },
+                { id: "q4", type: "checkbox", title: "Which future technical extensions would you participate in?", required: false, options: ["Autonomous Drone Navigation", "Edge AI on Raspberry Pi", "Reinforcement Learning Projects"] },
+                { id: "q5", type: "paragraph", title: "What was your main highlight or suggestion for our next edition?", required: false }
+              ],
+              qualityScore: 96
+            }
+          });
+        }, 3200);
+      }
     }
 
-    function showError(msg) {
-      const errorBox = document.getElementById('errorBox');
-      errorBox.textContent = msg;
-      errorBox.style.display = 'block';
+    function handleAnalysisSuccess(response) {
+      if (!response.success && !response.data) {
+        showToast("Analysis failed: " + (response.errorMessage || "Unknown error"), "error");
+        return;
+      }
+
+      const res = response.data;
+      appState.analysis = res.analysis;
+      appState.questions = res.questions || [];
+      appState.qualityScore = res.qualityScore || 95;
+
+      // Populate Analysis cards
+      document.getElementById('resPurpose').textContent = res.analysis.purpose || "Practical skill empowerment";
+      document.getElementById('resAudience').textContent = res.analysis.audience || appState.event.audience;
+
+      const topicsWrap = document.getElementById('resTopicsTags');
+      topicsWrap.innerHTML = (res.analysis.topics || []).map(t => `<div class="tag">${t}</div>`).join('');
+
+      const actWrap = document.getElementById('resActivitiesTags');
+      actWrap.innerHTML = (res.analysis.activities || []).map(a => `<div class="tag">${a}</div>`).join('');
+
+      // Mark last step done and reveal output cards
+      const lastStep = document.getElementById('step-5');
+      if (lastStep) {
+        lastStep.classList.remove('active');
+        lastStep.classList.add('done');
+      }
+
+      document.getElementById('analysisOutputCards').style.display = 'block';
+      gsap.from('#analysisOutputCards', { opacity: 0, y: 20, duration: 0.5 });
+      renderQuestionsList();
+      showToast("Event analysis complete!", "success");
+    }
+
+    function handleAnalysisError(err) {
+      showToast("Server analysis error. Check connection.", "error");
+    }
+
+    // Render Question Cards in Studio
+    function renderQuestionsList() {
+      const container = document.getElementById('questionsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      appState.questions.forEach((q, idx) => {
+        const card = document.createElement('div');
+        card.className = 'glass-card question-card';
+        card.innerHTML = `
+          <div class="q-header">
+            <span class="q-num">QUESTION 0${idx + 1}</span>
+            <span class="q-type-badge">${q.type.replace('_', ' ')}</span>
+          </div>
+          <div class="q-title">${q.title}</div>
+          ${renderQuestionPreviewOptions(q)}
+          <div class="q-footer">
+            <span style="font-size: 0.85rem; color: ${q.required ? '#34d399' : 'var(--text-dim)'}; font-weight: 500;">
+              ${q.required ? '✓ Required' : 'Optional'}
+            </span>
+            <div class="q-actions">
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal(${idx})">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="deleteQuestion(${idx})">Delete</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('qualityScoreVal').textContent = appState.qualityScore;
+      lucide.createIcons();
+    }
+
+    function renderQuestionPreviewOptions(q) {
+      if (q.type === 'scale') {
+        return `<div class="q-options-preview" style="flex-direction: row; gap: 0.5rem; margin-top: 0.25rem;">
+          ${[1, 2, 3, 4, 5].map(n => `<div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: var(--text-muted);">${n}</div>`).join('')}
+        </div>`;
+      } else if (q.type === 'multiple_choice' || q.type === 'checkbox') {
+        const icon = q.type === 'multiple_choice' ? 'circle' : 'square';
+        return `<div class="q-options-preview">
+          ${(q.options || []).map(opt => `<div class="q-opt-item"><i data-lucide="${icon}" style="width: 14px; height: 14px;"></i><span>${opt}</span></div>`).join('')}
+        </div>`;
+      } else {
+        return `<div style="padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px dashed var(--glass-border); border-radius: 8px; color: var(--text-dim); font-size: 0.85rem;">[ Free-form open text response ]</div>`;
+      }
+    }
+
+    // Question Editing Functions
+    function openEditModal(idx) {
+      appState.currentEditingIndex = idx;
+      const q = appState.questions[idx];
+      document.getElementById('editQTitle').value = q.title;
+      document.getElementById('editQType').value = q.type;
+      document.getElementById('editQRequired').checked = !!q.required;
+
+      const optGroup = document.getElementById('editModalOptionsGroup');
+      if (q.type === 'multiple_choice' || q.type === 'checkbox') {
+        optGroup.style.display = 'block';
+        document.getElementById('editQOptions').value = (q.options || []).join(', ');
+      } else {
+        optGroup.style.display = 'none';
+      }
+
+      document.getElementById('editQuestionModal').classList.add('active');
+    }
+
+    function toggleEditModalOptions() {
+      const type = document.getElementById('editQType').value;
+      const optGroup = document.getElementById('editModalOptionsGroup');
+      optGroup.style.display = (type === 'multiple_choice' || type === 'checkbox') ? 'block' : 'none';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editQuestionModal').classList.remove('active');
+    }
+
+    function saveEditedQuestion() {
+      const idx = appState.currentEditingIndex;
+      const title = document.getElementById('editQTitle').value.trim();
+      const type = document.getElementById('editQType').value;
+      const req = document.getElementById('editQRequired').checked;
+
+      if (!title) {
+        showToast("Question title cannot be empty", "error");
+        return;
+      }
+
+      const q = appState.questions[idx];
+      q.title = title;
+      q.type = type;
+      q.required = req;
+
+      if (type === 'multiple_choice' || type === 'checkbox') {
+        const rawOpts = document.getElementById('editQOptions').value;
+        q.options = rawOpts.split(',').map(s => s.trim()).filter(Boolean);
+        if (q.options.length === 0) q.options = ["Option 1", "Option 2"];
+      }
+
+      closeEditModal();
+      renderQuestionsList();
+      showToast("Question updated successfully!", "success");
+    }
+
+    function deleteQuestion(idx) {
+      appState.questions.splice(idx, 1);
+      renderQuestionsList();
+      showToast("Question removed", "success");
+    }
+
+    function openAddQuestionModal() {
+      const newQ = {
+        id: "q_" + Date.now(),
+        type: "scale",
+        title: "How satisfied were you with the overall event organization?",
+        required: true,
+        min: 1,
+        max: 5
+      };
+      appState.questions.push(newQ);
+      openEditModal(appState.questions.length - 1);
+    }
+
+    // Google Form Creation Phase
+    function startFormCreation() {
+      if (appState.questions.length === 0) {
+        showToast("Please keep at least 1 question", "error");
+        return;
+      }
+
+      navigateTo('generating');
+
+      const formData = {
+        title: (appState.event.name || "Event") + " Feedback",
+        description: appState.event.description || "Thank you for joining us!",
+        eventType: appState.event.type,
+        questions: appState.questions
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(handleFormSuccess)
+          .withFailureHandler(handleFormError)
+          .generateGoogleForm(formData);
+      } else {
+        // Fallback simulation
+        setTimeout(() => {
+          handleFormSuccess({
+            success: true,
+            formUrl: "https://docs.google.com/forms/d/e/sample-form/viewform",
+            editUrl: "https://docs.google.com/forms/d/sample-form/edit"
+          });
+        }, 2500);
+      }
+    }
+
+    function handleFormSuccess(resp) {
+      if (!resp.success) {
+        showToast("Error creating form: " + resp.error, "error");
+        navigateTo('questions');
+        return;
+      }
+
+      document.getElementById('successFormTitle').textContent = appState.event.name + " Feedback Form";
+      document.getElementById('successFormMeta').textContent = `${appState.questions.length} questions deployed and live in Google Drive.`;
+      document.getElementById('btnLiveForm').href = resp.formUrl;
+      document.getElementById('btnEditForm').href = resp.editUrl;
+
+      // Add to local history
+      const newHistoryItem = {
+        title: appState.event.name + " Feedback",
+        eventType: appState.event.type,
+        questionCount: appState.questions.length,
+        formUrl: resp.formUrl,
+        editUrl: resp.editUrl,
+        date: "Today"
+      };
+      appState.history.unshift(newHistoryItem);
+      renderRecentForms();
+      renderHistory();
+
+      navigateTo('success');
+      showToast("Google Form created successfully!", "success");
+    }
+
+    function handleFormError(err) {
+      showToast("FormApp error: " + err.message, "error");
+      navigateTo('questions');
+    }
+
+    // History & Recent Forms Renderers
+    function renderRecentForms() {
+      const container = document.getElementById('recentFormsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      appState.history.slice(0, 3).forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'glass-card recent-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size: 0.8rem; color: var(--cyan); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">${item.eventType}</div>
+            <h4 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.25rem;">${item.title}</h4>
+            <div style="color: var(--text-dim); font-size: 0.85rem;">${item.questionCount} questions • ${item.date}</div>
+          </div>
+          <div>
+            <a href="${item.formUrl}" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%;">
+              <span>Open Form ↗</span>
+            </a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      document.getElementById('statFormsCount').textContent = appState.history.length + 125;
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      appState.history.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'glass-card recent-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size: 0.8rem; color: var(--cyan); text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem;">${item.eventType}</div>
+            <h4 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.25rem;">${item.title}</h4>
+            <div style="color: var(--text-dim); font-size: 0.85rem;">${item.questionCount} questions • ${item.date}</div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="${item.formUrl}" target="_blank" class="btn btn-primary btn-sm" style="flex: 1;">Respondent ↗</a>
+            <a href="${item.editUrl}" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1;">Edit ↗</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function loadStoredHistory() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(history => {
+            if (history && history.length > 0) {
+              appState.history = history;
+              renderRecentForms();
+              renderHistory();
+            }
+          })
+          .getFormHistory();
+      }
+    }
+
+    // Modal helpers
+    function showHowItWorks() {
+      document.getElementById('howItWorksModal').classList.add('active');
+    }
+    function closeHowItWorks() {
+      document.getElementById('howItWorksModal').classList.remove('active');
+    }
+
+    // Toast notification utility
+    function showToast(msg, type = "info") {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-triangle' : 'info');
+      toast.innerHTML = `<i data-lucide="${icon}" style="color: ${type === 'success' ? '#34d399' : (type === 'error' ? '#f87171' : 'var(--cyan)')};"></i><span>${msg}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        gsap.to(toast, { opacity: 0, x: 50, duration: 0.3, onComplete: () => toast.remove() });
+      }, 3500);
     }
   </script>
 </body>

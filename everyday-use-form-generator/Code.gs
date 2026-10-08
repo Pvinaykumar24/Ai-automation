@@ -4,7 +4,7 @@
 
 // 🔑 CONFIGURATION: Paste your API Key here
 // Supports: OpenRouter (sk-or-v1-...), Groq (gsk_...), OpenAI (sk-...), Gemini (AIza...)
-const API_KEY = "PASTE_YOUR_API_KEY_HERE";
+const API_KEY = "YOUR_OPENROUTER_API_KEY_HERE";
 
 // Model for OpenRouter (e.g., "google/gemini-2.0-flash-001", "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat")
 const OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
@@ -211,9 +211,15 @@ function generateGoogleForm(formData) {
  * Universal AI Caller supporting OpenRouter, Groq, xAI, OpenAI & Gemini
  */
 function callAI(systemPrompt, userPrompt) {
-  const apiKey = (API_KEY || '').trim();
-  if (!apiKey || apiKey === "PASTE_YOUR_API_KEY_HERE") {
-    throw new Error("API_KEY not configured.");
+  let apiKey = (API_KEY || '').trim();
+  if (apiKey.includes('sk-or-')) {
+    apiKey = apiKey.substring(apiKey.indexOf('sk-or-'));
+  } else if (apiKey.includes('gsk_')) {
+    apiKey = apiKey.substring(apiKey.indexOf('gsk_'));
+  } else if (apiKey.includes('xai-')) {
+    apiKey = apiKey.substring(apiKey.indexOf('xai-'));
+  } else if (apiKey.includes('sk-')) {
+    apiKey = apiKey.substring(apiKey.indexOf('sk-'));
   }
 
   let provider = 'gemini';

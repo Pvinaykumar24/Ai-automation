@@ -83,18 +83,7 @@ flowchart TD
 
 ---
 
-## 🚀 How Judges Can Test (Quick 30-Second Demo)
 
-1. Open the [Live Hosted Demo Link](https://script.google.com/macros/s/AKfycbwvhXe7XwzcTGtho_uCMdGAbhzY5HEmbuAtDEaGXB5T0Et_B5SgSBhbKbQVssQ74BbRvQ/exec).
-2. On the Dashboard, admire the interactive **3D Hero AI Orb** and click **Create Feedback Form**.
-3. Click **⚡ Load Sample Event** (or paste your own custom event description).
-4. Click **Analyze Event & Plan Questions →**.
-5. Watch the animated analysis decompose the event purpose, tools, and activities.
-6. Click **Open Question Studio →** to preview the tailored questions and the **AI Quality Audit (96/100)**.
-7. Click **Create Google Form Now**.
-8. Click **Open Google Form (Respondent View)** to open and fill out your real Google Form!
-
----
 
 ## 📁 Repository Structure
 

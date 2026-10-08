@@ -412,3 +412,20 @@ function getFormHistory() {
   }
   return [];
 }
+
+/**
+ * Run this function directly from the Apps Script editor to ensure
+ * Google Drive / FormApp permissions are granted!
+ */
+function testCreateForm() {
+  const result = generateGoogleForm({
+    title: "Test AI Feedback Form",
+    description: "Testing Google FormApp creation",
+    questions: [
+      { type: "scale", title: "Rate this test session", min: 1, max: 5 },
+      { type: "paragraph", title: "Any feedback?" }
+    ]
+  });
+  Logger.log("Test Form Created: " + JSON.stringify(result));
+  return result;
+}

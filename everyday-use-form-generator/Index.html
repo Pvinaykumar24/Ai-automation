@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base target="_top">
+  <base target="_blank">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Event Feedback Studio</title>
@@ -1095,12 +1095,23 @@
             <h2 class="section-title" id="successFormTitle">AI & Robotics Workshop Feedback</h2>
             <p class="section-sub" id="successFormMeta">7 questions generated and ready for respondents.</p>
 
+            <div style="margin: 1.5rem 0; text-align: left;">
+              <label style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.4rem;">Live Google Form URL</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="liveFormUrlInput" readonly class="glass-input" style="font-family: monospace; font-size: 0.85rem;" onclick="this.select()">
+                <button class="btn btn-secondary btn-sm" onclick="copyLiveFormUrl()">
+                  <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
             <div class="success-actions">
-              <a id="btnLiveForm" href="#" target="_blank" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+              <a id="btnLiveForm" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="openExternalUrl(this.href); return false;">
                 <i data-lucide="external-link" style="width: 20px; height: 20px;"></i>
                 <span>Open Google Form (Respondent View) ↗</span>
               </a>
-              <a id="btnEditForm" href="#" target="_blank" class="btn btn-secondary">
+              <a id="btnEditForm" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" onclick="openExternalUrl(this.href); return false;">
                 <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                 <span>Edit in Google Drive ↗</span>
               </a>
@@ -1651,6 +1662,7 @@
       document.getElementById('successFormMeta').textContent = `${appState.questions.length} questions deployed and live in Google Drive.`;
       document.getElementById('btnLiveForm').href = resp.formUrl;
       document.getElementById('btnEditForm').href = resp.editUrl;
+      document.getElementById('liveFormUrlInput').value = resp.formUrl;
 
       // Add to local history
       const newHistoryItem = {
@@ -1667,6 +1679,18 @@
 
       navigateTo('success');
       showToast("Google Form created successfully!", "success");
+    }
+
+    function openExternalUrl(url) {
+      if (!url || url === '#' || url.startsWith('javascript:')) return;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function copyLiveFormUrl() {
+      const input = document.getElementById('liveFormUrlInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      showToast("Google Form link copied to clipboard!", "success");
     }
 
     function handleFormError(err) {
